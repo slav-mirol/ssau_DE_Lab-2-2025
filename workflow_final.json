@@ -1,0 +1,1342 @@
+{
+  "name": "Translate",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.item.json.message;\n\nif (msg.text?.startsWith('http')) {\n  return [{ json: {\n    type: 'url',\n    url: msg.text,\n    chat_id: msg.chat.id,\n    update_id: $input.item.json.update_id\n  }}];\n} else if (msg.video || msg.document) {\n  const file = msg.video || msg.document;\n  return [{ json: {\n    type: 'file',\n    file_id: file.file_id,\n    chat_id: msg.chat.id,\n    update_id: $input.item.json.update_id\n  }}];\n} else {\n  return [];\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        336
+      ],
+      "id": "173ccf8d-d1be-4b43-ba1d-1da5cf90b16f",
+      "name": "Определение типа вложения"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b6188545-64f7-45ed-86c0-914b389baa14",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "file",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -864,
+        336
+      ],
+      "id": "d2d15373-9a17-4247-b15c-03eea16d8b61",
+      "name": "Тип вложения"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6e308d35-97b4-450b-bcec-eb5e546950da",
+              "name": "file_id",
+              "value": "={{ $json.file_id }}",
+              "type": "string"
+            },
+            {
+              "id": "93acb0de-5c8e-4c64-964c-7f9c5eb026fc",
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}",
+              "type": "number"
+            },
+            {
+              "id": "b4951023-02e5-4ef3-bad7-b613a8261acb",
+              "name": "update_id",
+              "value": "={{ $json.update_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -544,
+        320
+      ],
+      "id": "8503389f-0dcf-4279-9390-e5430d9a240d",
+      "name": "Сохранение chat_id"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/getFile",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "file_id",
+              "value": "={{ $input.first().json.file_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -656,
+        96
+      ],
+      "id": "f5842fef-9780-4aee-9bb2-34c1a6875273",
+      "name": "Получение ссылки на файл"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "81a9a4e4-9695-4f96-bbbc-9275ff3d08b5",
+              "name": "file_id",
+              "value": "={{ $json.result.file_id }}",
+              "type": "string"
+            },
+            {
+              "id": "ae526281-cd3f-4bfe-b37f-6d2315b0939e",
+              "name": "file_url",
+              "value": "=https://api.telegram.org/file/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/{{ $json.result.file_path }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -464,
+        96
+      ],
+      "id": "c95a6ba7-1f3a-448c-aaaf-f7383caa7f9a",
+      "name": "Получение file_url"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "file_id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -288,
+        256
+      ],
+      "id": "d51d43f9-69ee-4a9f-8c1c-8668b67ed283",
+      "name": "Получение структуры для скачивания"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3f735acb-a9a0-4233-a6b3-4bb711f7c453",
+              "name": "file_url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "56356f86-9215-4be6-bd83-12dcafb02517",
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}",
+              "type": "number"
+            },
+            {
+              "id": "a4be15bd-6abb-46be-8846-f371acda1fb8",
+              "name": "update_id",
+              "value": "={{ $json.update_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -464,
+        480
+      ],
+      "id": "937d0456-0838-4477-b0d7-4b0b18e65906",
+      "name": "Структура для скачивания по ссылке"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -16,
+        272
+      ],
+      "id": "7968a2db-4bfa-4117-9598-dc966e36416b",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "command": "=curl -L {{ $input.first().json.file_url }} -o /tmp/video_{{ $input.first().json.chat_id }}_{{ $json.update_id }}.mp4"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        176,
+        432
+      ],
+      "id": "c89bbca6-24d1-47fc-8059-786440f6744d",
+      "name": "скачивание ролика"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -i /tmp/video_{{ $input.first().json.chat_id }}_{{ $json.update_id }}.mp4 -vn -acodec mp3 -ar 16000 /tmp/audio_{{ $input.first().json.chat_id }}_{{ $json.update_id }}.mp3"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        448
+      ],
+      "id": "56983c4d-ae5f-412f-b6ec-e41dfe3f32da",
+      "name": "Извлечение аудиодорожки"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        832,
+        288
+      ],
+      "id": "9a1bb354-1adb-430f-bfdd-a709f2f4a472",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1568,
+        304
+      ],
+      "id": "c154a103-28ed-44af-aa1a-a1cd79a16d80",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        144
+      ],
+      "id": "7c2020be-6c80-4879-b777-d1d4d72f1557",
+      "name": "Удаление лишних ответов"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Распарсим .srt и сохраним структуру\nconst srtContent = $input.first().json.stdout.toString();\n\nconst blocks = srtContent.trim().split(/\\n\\s*\\n/).filter(Boolean);\nconst segments = [];\n\nfor (const block of blocks) {\n  const lines = block.split('\\n').filter(Boolean);\n  if (lines.length >= 3 && lines[1].includes('-->')) {\n    segments.push({\n      index: lines[0],\n      time: lines[1],\n      text: lines.slice(2).join(' ').trim()\n    });\n  }\n}\n\n// Объединяем только текст для перевода\nconst fullText = segments.map(s => s.text).join('\\n|||\\n'); // уникальный разделитель\n\nreturn {\n  json: { fullText, segments }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2912,
+        304
+      ],
+      "id": "df935023-2d77-40f5-b304-bd49e0a9b8d6",
+      "name": "Парсинг субтитров JS"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.fullText }}",
+        "options": {
+          "systemMessage": "You are a professional subtitler. Translate the following dialogue lines into Russian.\n- Preserve the meaning and tone.\n- Keep line breaks exactly as in input.\n- NEVER add extra text, notes, or formatting.\n- Output ONLY the translated lines, separated by \\n|||\\n."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        3088,
+        448
+      ],
+      "id": "d8623b5c-7fda-4c4d-a949-2697f98121f5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b:free",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3088,
+        656
+      ],
+      "id": "56fbff5d-330b-486e-bbbc-dabbf6ba6f0d",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "Hpwb68NW0UHS9Po3",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3376,
+        320
+      ],
+      "id": "c9f8a8af-0b87-4286-ba3e-d777ae7cc55d",
+      "name": "Merge4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const translatedText = $input.last().json.output; \n\nif (typeof translatedText !== 'string') {\n  throw new Error('Translated text is missing or not a string');\n}\n\nconst translatedLines = translatedText\n  .split('|||\\n')\n  .map(line => line.trim());\n\n// Получаем оригинальные сегменты (таймкоды + индексы)\nconst originalSegments = $input.first().json.segments\n\nif (!Array.isArray(originalSegments)) {\n  throw new Error('Original segments not found or not an array');\n}\n\nif (translatedLines.length !== originalSegments.length) {\n  throw new Error(`Mismatch: ${originalSegments.length} segments, but ${translatedLines.length} translations`);\n}\n\n// Собираем SRT\nlet srtOutput = '';\nfor (let i = 0; i < originalSegments.length; i++) {\n  srtOutput += `${originalSegments[i].index}\\n`;\n  srtOutput += `${originalSegments[i].time}\\n`;\n  srtOutput += `${translatedLines[i]}\\n\\n`;\n}\n\n// Кодируем в base64\nconst srtBase64 = Buffer.from(srtOutput, 'utf8').toString('base64');\n\n// Возвращаем ОДИН элемент с бинарными данными\nreturn [\n  {\n    json: {\n      srtReconstructed: true,\n      segmentCount: originalSegments.length\n    },\n    binary: {\n      translatedSrt: {\n        data: srtBase64,\n        mimeType: 'application/x-subrip',\n        fileName: 'subtitles_ru.srt'\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3536,
+        320
+      ],
+      "id": "c93ce60b-1410-4b6a-a30d-8553ab4ef7af",
+      "name": "Субтитры в srt на русском"
+    },
+    {
+      "parameters": {
+        "command": "=ffmpeg -i \"/tmp/video_{{ $json.chat_id }}_{{ $json.update_id }}.mp4\" \\\n  -vf \"subtitles=/tmp/translated_srt.srt:force_style='Fontsize=16,PrimaryColour=&Hffffff&'\" \\\n  -c:v libx264 \\\n  -crf 28 \\\n  -preset fast \\\n  -c:a aac \\\n  -b:a 96k \\\n  -movflags +faststart \\\n  -max_muxing_queue_size 1024 \\\n  -y \"/tmp/video_with_subs_{{ $json.chat_id }}_{{ $json.update_id }}.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        4096,
+        208
+      ],
+      "id": "aefda488-ba9a-4bc7-ac74-7c25faea0d78",
+      "name": "Наложение субтитров"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/tmp/video_with_subs_{{ $json.chat_id }}_{{ $json.update_id }}.mp4",
+        "options": {
+          "fileName": "videoBinary",
+          "dataPropertyName": "videoBinary"
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        4896,
+        144
+      ],
+      "id": "a0fbcb8e-657f-485e-8d27-966486ce0587",
+      "name": "Читаем бинарь"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2032,
+        352
+      ],
+      "id": "03a42bef-ce45-49a3-8b14-8da52da60fbe",
+      "name": "Запуск пайплайна"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/getUpdates",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1792,
+        352
+      ],
+      "id": "e11c1e7d-74df-4c5d-b7fc-349bc72f4197",
+      "name": "Получение обновлений"
+    },
+    {
+      "parameters": {
+        "jsCode": "const updates = $input.item.json.result;\n\nif (!Array.isArray(updates) || updates.length === 0) {\n  // Нет новых сообщений — выход\n  return [];\n}\n\n// Берём последний элемент\nconst lastUpdate = updates[updates.length - 1];\n\nreturn [{\n  json: lastUpdate\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1552,
+        352
+      ],
+      "id": "c4b5acbb-833b-4249-9c25-4fd14b26a653",
+      "name": "Получение последнего сообщения"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "73964a22-8a97-437f-ba2e-7d3a1e4ffc51",
+              "leftValue": "={{ \n  !!(\n    $input.first().json.message?.video ||\n    $input.first().json.message?.document ||\n    (\n      typeof $input.first().json.message?.text === 'string' &&\n      (\n        $input.first().json.message.text.trim().startsWith('http://') ||\n        $input.first().json.message.text.trim().startsWith('https://')\n      )\n    )\n  )\n}}",
+              "rightValue": "=true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1296,
+        352
+      ],
+      "id": "21f8d0ba-13d4-425e-886c-7556916f440a",
+      "name": "Валидность сообщения"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $input.first().json.message.chat.id }}"
+            },
+            {
+              "name": "text",
+              "value": "Пожалуйста, отправьте видеофайл или ссылку на видео (например, YouTube)."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1056,
+        528
+      ],
+      "id": "d779e56a-3077-4923-81a7-03dc2cc3b2a1",
+      "name": "Сообщение об ошибке"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/translated_srt.srt",
+        "dataPropertyName": "=translatedSrt",
+        "options": {
+          "append": false
+        }
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        3696,
+        320
+      ],
+      "id": "82ac548f-032f-4f3a-8147-20f1b67b7df7",
+      "name": "Запись в файл субтитров"
+    },
+    {
+      "parameters": {
+        "jsCode": "const axios = require('axios');\nconst FormData = require('form-data');\n\n// Получаем chat_id и бинарные данные из входного элемента\nconst chatId = 876663611;\nconst botToken = '8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU';\n\n// Извлекаем бинарные данные (base64) и конвертируем в Buffer\nconst binaryData = $input.first().binary.videoBinary;\n\n// Конвертируем base64 в Buffer\nconst videoBuffer = Buffer.from(binaryData.data, 'base64');\n\n// Создаём форму\nconst form = new FormData();\nform.append('chat_id', String(chatId));\nform.append('video', videoBuffer, {\n  filename: binaryData.fileName || 'video.mp4',\n  contentType: binaryData.mimeType || 'video/mp4'\n});\n\n// Отправляем\nawait axios.post(`https://api.telegram.org/bot${botToken}/sendVideo`, form, {\n  headers: {\n    ...form.getHeaders()\n  },\n  maxBodyLength: Infinity,\n  maxContentLength: Infinity\n});\n\nreturn { json: { success: true, message: 'Видео отправлено', chatId: 876663611 } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5072,
+        144
+      ],
+      "id": "4c320efa-c57c-4564-9c3c-0b1b1892952f",
+      "name": "Отправка ролика"
+    },
+    {
+      "parameters": {
+        "command": "rm -rf /tmp/audio_* /tmp/translated_* /tmp/video_* /tmp/subtitles_*"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        5504,
+        144
+      ],
+      "id": "a617af12-a9f8-4669-b9be-c06dd07dd783",
+      "name": "Удаление временных файлов"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3888,
+        208
+      ],
+      "id": "b273c47c-c358-4b9a-b88d-72c8e7acfb9e",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4336,
+        128
+      ],
+      "id": "688b5d6b-355d-4c74-a811-1dd62877a8e6",
+      "name": "Merge5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chatId }}"
+            },
+            {
+              "name": "text",
+              "value": "Готово! Вот ваше видео с русскими субтитрами"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        5264,
+        144
+      ],
+      "id": "67cd1481-0cee-4791-8ffd-aa3070a5fca0",
+      "name": "Сообщение об ошибке1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "Ваше видео скачано! Переходим к обработке..."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        592,
+        352
+      ],
+      "id": "3a79d1c9-c229-47a1-bd60-45f7616c0749",
+      "name": "Сообщение о скачивании ролика",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        400,
+        352
+      ],
+      "id": "21eed35b-c9c1-4dfe-9e8d-b1ba1d0d7448",
+      "name": "Merge6"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1216,
+        368
+      ],
+      "id": "b9535a30-34d1-419e-a26a-fef577cb0783",
+      "name": "Merge7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "Аудиодорожка извлечена!"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1392,
+        368
+      ],
+      "id": "7964f098-1176-4b10-833d-21454dc6a97b",
+      "name": "Сообщение о извлечении аудио",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "command": "=curl -X POST \"http://itkubrik.ru:11788/transcribe_srt\" -F \"file=@/tmp/audio_{{ $input.first().json.chat_id }}_{{ $json.update_id }}.mp3\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        224
+      ],
+      "id": "57d6ac0f-ee26-4fec-baf5-a6f0e09e4016",
+      "name": "Получение текста"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "Извлечение текста из аудио..."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1888,
+        448
+      ],
+      "id": "c576d7be-2b71-4bec-9ca9-f0bd7f03daf5",
+      "name": "Сообщение о извлечении текста"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2416,
+        384
+      ],
+      "id": "f81b3271-74ba-42e3-88c2-f100f239df99",
+      "name": "Merge8"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "Перевод текста..."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2576,
+        384
+      ],
+      "id": "f75aef94-dc1c-402e-9eba-bfd20970c444",
+      "name": "Сообщение о переводе",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot8097854380:AAGPgUMb1p67masDXodFFsKR__syeiUD6YU/sendMessage",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "name": "text",
+              "value": "Субтитры наложены! Отправляю видео..."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4528,
+        240
+      ],
+      "id": "1d5a38ed-3f44-423d-a6d2-94929f7af803",
+      "name": "Сообщение об отправке роилка",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2048,
+        304
+      ],
+      "id": "365725e9-304b-4809-8120-aa11f1cb50b7",
+      "name": "Merge9"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2752,
+        304
+      ],
+      "id": "08ed3a1a-2204-4ca8-a36b-fca723cfa480",
+      "name": "Merge10"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4704,
+        144
+      ],
+      "id": "b8b74de2-84aa-4892-bc6f-cf2f9b89bf19",
+      "name": "Merge11"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Определение типа вложения": {
+      "main": [
+        [
+          {
+            "node": "Тип вложения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Тип вложения": {
+      "main": [
+        [
+          {
+            "node": "Сохранение chat_id",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Получение ссылки на файл",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Структура для скачивания по ссылке",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получение ссылки на файл": {
+      "main": [
+        [
+          {
+            "node": "Получение file_url",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получение file_url": {
+      "main": [
+        [
+          {
+            "node": "Получение структуры для скачивания",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сохранение chat_id": {
+      "main": [
+        [
+          {
+            "node": "Получение структуры для скачивания",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Структура для скачивания по ссылке": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Получение структуры для скачивания": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "скачивание ролика",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "скачивание ролика": {
+      "main": [
+        [
+          {
+            "node": "Merge6",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Извлечение аудиодорожки": {
+      "main": [
+        [
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Извлечение аудиодорожки",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Удаление лишних ответов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Удаление лишних ответов": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Сообщение о извлечении текста",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Парсинг субтитров JS": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge4",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge4": {
+      "main": [
+        [
+          {
+            "node": "Субтитры в srt на русском",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Субтитры в srt на русском": {
+      "main": [
+        [
+          {
+            "node": "Запись в файл субтитров",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Наложение субтитров": {
+      "main": [
+        [
+          {
+            "node": "Merge5",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Читаем бинарь": {
+      "main": [
+        [
+          {
+            "node": "Отправка ролика",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запуск пайплайна": {
+      "main": [
+        [
+          {
+            "node": "Получение обновлений",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получение обновлений": {
+      "main": [
+        [
+          {
+            "node": "Получение последнего сообщения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получение последнего сообщения": {
+      "main": [
+        [
+          {
+            "node": "Валидность сообщения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Валидность сообщения": {
+      "main": [
+        [
+          {
+            "node": "Определение типа вложения",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Сообщение об ошибке",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запись в файл субтитров": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Отправка ролика": {
+      "main": [
+        [
+          {
+            "node": "Сообщение об ошибке1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Наложение субтитров",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge5": {
+      "main": [
+        [
+          {
+            "node": "Сообщение об отправке роилка",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сообщение о скачивании ролика": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge6": {
+      "main": [
+        [
+          {
+            "node": "Сообщение о скачивании ролика",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge7": {
+      "main": [
+        [
+          {
+            "node": "Сообщение о извлечении аудио",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сообщение о извлечении аудио": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Получение текста": {
+      "main": [
+        [
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge8": {
+      "main": [
+        [
+          {
+            "node": "Сообщение о переводе",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сообщение о переводе": {
+      "main": [
+        [
+          {
+            "node": "Merge10",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Сообщение об отправке роилка": {
+      "main": [
+        [
+          {
+            "node": "Merge11",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Сообщение о извлечении текста": {
+      "main": [
+        [
+          {
+            "node": "Merge9",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge9": {
+      "main": [
+        [
+          {
+            "node": "Получение текста",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge10": {
+      "main": [
+        [
+          {
+            "node": "Парсинг субтитров JS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Удаление временных файлов": {
+      "main": [
+        []
+      ]
+    },
+    "Сообщение об ошибке1": {
+      "main": [
+        [
+          {
+            "node": "Удаление временных файлов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge11": {
+      "main": [
+        [
+          {
+            "node": "Читаем бинарь",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7cbeb7fc-bf7c-4eb1-91a5-024b9738de91",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fd149ba10802409621bfb2c499559da34cf0c84637eb75d55baf68a0c1ab1321"
+  },
+  "id": "AmvulaaCTVUyECDs",
+  "tags": []
+}

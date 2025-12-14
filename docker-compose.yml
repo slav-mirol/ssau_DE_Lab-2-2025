@@ -1,0 +1,35 @@
+version: '3.3'
+
+services:
+  n8n:
+    build:
+      context: . # Путь к Dockerfile для n8n
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "${N8N_PORT}:${N8N_PORT}"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  n8n_data:
+  postgres_data:
